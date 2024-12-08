@@ -23,10 +23,11 @@ namespace Dithering
                 originalImage.Width * originalImage.Height,
                 (i) =>
                 {
-                    Color c = originalImage.GetPixel(i / width, i % width);
+                    int j = i;
+                    Color c = originalImage.GetPixel(i % width, i / width);
                     processedBitmap.SetPixel(
-                        i / width,
                         i % width,
+                        i / width,
                         Color.FromArgb(
                             GetClosestValue(c.R, colorValues.redValues),
                             GetClosestValue(c.G, colorValues.greenValues),
@@ -108,29 +109,33 @@ namespace Dithering
             {
                 for (int j = 0; j < originalImage.Height; j++)
                 {
-                    Color originalColor = originalImage.GetPixel(i, j);
-                    int r = GetClosestValue(
-                        originalColor.R
-                            + 255f
-                                / ditheringParams.Kr
-                                * bayerMatrixRed[i % redLength, j % redLength],
-                        colorValues.redValues
+                    Color c = originalImage.GetPixel(i, j);
+
+                    int nR = bayerMatrixRed.GetLength(0);
+                    int rcol = c.R * (ditheringParams.Kr - 1) / 255;
+                    int rre = c.R * (ditheringParams.Kr - 1) % 255;
+                    if (rre > bayerMatrixRed[i % nR, j % nR] * 255 / (nR * nR))
+                        rcol++;
+
+                    int nG = bayerMatrixGreen.GetLength(0);
+                    int gcol = c.G * (ditheringParams.Kg - 1) / 255;
+                    int gre = c.G * (ditheringParams.Kg - 1) % 255;
+                    if (gre > bayerMatrixGreen[i % nG, j % nG] * 255 / (nG * nG))
+                        gcol++;
+
+                    int nB = bayerMatrixBlue.GetLength(0);
+                    int bcol = c.B * (ditheringParams.Kb - 1) / 255;
+                    int bre = c.B * (ditheringParams.Kb - 1) % 255;
+                    if (bre > bayerMatrixBlue[i % nB, j % nB] * 255 / (nB * nB))
+                        bcol++;
+
+                    Color newColor = Color.FromArgb(
+                        (int)colorValues.redValues[rcol],
+                        (int)colorValues.greenValues[gcol],
+                        (int)colorValues.blueValues[bcol]
                     );
-                    int g = GetClosestValue(
-                        originalColor.G
-                            + 255f
-                                / ditheringParams.Kg
-                                * bayerMatrixGreen[i % greenLength, j % greenLength],
-                        colorValues.greenValues
-                    );
-                    int b = GetClosestValue(
-                        originalColor.B
-                            + 255f
-                                / ditheringParams.Kb
-                                * bayerMatrixBlue[i % blueLength, j % blueLength],
-                        colorValues.blueValues
-                    );
-                    processedBitmap.SetPixel(i, j, Color.FromArgb(r, g, b));
+
+                    processedBitmap.SetPixel(i, j, newColor);
                 }
             }
 
@@ -154,37 +159,47 @@ namespace Dithering
             int blueLength = bayerMatrixBlue.GetLength(0);
             int greenLength = bayerMatrixGreen.GetLength(0);
             ColorValues colorValues = getColors(ditheringParams);
-
+            Random rand = new Random();
             for (int i = 0; i < originalImage.Width; i++)
             {
                 for (int j = 0; j < originalImage.Height; j++)
                 {
-                    Color originalColor = originalImage.GetPixel(i, j);
-                    int r = GetClosestValue(
-                        originalColor.R
-                            + 255f
-                                / ditheringParams.Kr
-                                * bayerMatrixRed[random.Next(redLength), random.Next(redLength)],
-                        colorValues.redValues
+                    Color c = originalImage.GetPixel(i, j);
+
+                    int nR = bayerMatrixRed.GetLength(0);
+                    int rcol = c.R * (ditheringParams.Kr - 1) / 255;
+                    int rre = c.R * (ditheringParams.Kr - 1) % 255;
+                    if (
+                        rre
+                        > bayerMatrixRed[rand.Next(nR) % nR, rand.Next(nR) % nR] * 255 / (nR * nR)
+                    )
+                        rcol++;
+
+                    int nG = bayerMatrixGreen.GetLength(0);
+                    int gcol = c.G * (ditheringParams.Kg - 1) / 255;
+                    int gre = c.G * (ditheringParams.Kg - 1) % 255;
+                    if (
+                        gre
+                        > bayerMatrixGreen[rand.Next(nG) % nG, rand.Next(nG) % nG] * 255 / (nG * nG)
+                    )
+                        gcol++;
+
+                    int nB = bayerMatrixBlue.GetLength(0);
+                    int bcol = c.B * (ditheringParams.Kb - 1) / 255;
+                    int bre = c.B * (ditheringParams.Kb - 1) % 255;
+                    if (
+                        bre
+                        > bayerMatrixBlue[rand.Next(nB) % nB, rand.Next(nB) % nB] * 255 / (nB * nB)
+                    )
+                        bcol++;
+
+                    Color newColor = Color.FromArgb(
+                        (int)colorValues.redValues[rcol],
+                        (int)colorValues.greenValues[gcol],
+                        (int)colorValues.blueValues[bcol]
                     );
-                    int g = GetClosestValue(
-                        originalColor.G
-                            + 255f
-                                / ditheringParams.Kg
-                                * bayerMatrixGreen[
-                                    random.Next(greenLength),
-                                    random.Next(greenLength)
-                                ],
-                        colorValues.greenValues
-                    );
-                    int b = GetClosestValue(
-                        originalColor.B
-                            + 255f
-                                / ditheringParams.Kb
-                                * bayerMatrixBlue[random.Next(blueLength), random.Next(blueLength)],
-                        colorValues.blueValues
-                    );
-                    processedBitmap.SetPixel(i, j, Color.FromArgb(r, g, b));
+
+                    processedBitmap.SetPixel(i, j, newColor);
                 }
             }
 

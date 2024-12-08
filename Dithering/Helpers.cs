@@ -89,9 +89,9 @@ namespace Dithering
             {
                 return new float[,]
                 {
-                    { 6.0f / 9 - 0.5f * 8f / 9, 8.0f / 9 - 0.5f * 8f / 9, 4f / 9 - 0.5f * 8f / 9 },
-                    { 1f / 9 - 0.5f * 8f / 9, 0 - 0.5f * 8f / 9, 3f / 9 - 0.5f * 8f / 9 },
-                    { 5f / 9 - 0.5f * 8f / 9, 2f / 9 - 0.5f * 8f / 9, 7f / 9 - 0.5f * 8f / 9 },
+                    { 6.0f, 8.0f, 4f },
+                    { 1f, 0f, 3f },
+                    { 5f, 2f, 7f },
                 };
             }
             float[,] smallerMatrix = new float[,]
@@ -99,22 +99,11 @@ namespace Dithering
                 { 0, 2 },
                 { 3, 1 },
             };
-            float max_value = 3;
             for (int i = 4; i <= n; i *= 2)
             {
                 float[,] helperMatrix = new float[i, i];
                 FillMatrix(helperMatrix, smallerMatrix, i / 2);
                 smallerMatrix = helperMatrix;
-                max_value = 4 * max_value + 3;
-            }
-            max_value /= (n * n);
-            int x = 0;
-            for (int i = 0; i < n; i++)
-            {
-                for (int j = 0; j < n; j++)
-                {
-                    smallerMatrix[i, j] = (float)(smallerMatrix[i, j] / (n * n) - 0.5 * max_value);
-                }
             }
             return smallerMatrix;
         }
